@@ -1,0 +1,32 @@
+name: "CodeQL Analysis Lab"
+
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    name: Analyze Code with CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # CodeQL renamed the JS analyzer pack; 'javascript-typescript' covers both.
+        language: [ 'javascript-typescript' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4      # was @v3 (v2 retired Jan 2025; v4 is current)
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"

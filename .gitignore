@@ -1,0 +1,19 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Reports / scan output
+reports/
+odc-reports/
+odc-data/
+dependency-check-report/
+*.sarif
+
+# Docker bind-mount data (Week 1 / Week 9)
+week01-docker-compose/mysql_data/
+week01-docker-compose/repos/
+week05-web-proxy-github-actions/nginx-proxy/certbot/
+
+# OS
+.DS_Store
+Thumbs.db

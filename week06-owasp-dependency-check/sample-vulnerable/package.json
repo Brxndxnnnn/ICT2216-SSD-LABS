@@ -1,0 +1,12 @@
+{
+  "name": "sample-vulnerable",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Deliberately outdated deps to exercise OWASP Dependency-Check. DO NOT deploy these versions.",
+  "dependencies": {
+    "lodash": "4.17.4",
+    "minimist": "0.0.8",
+    "jquery": "3.3.1",
+    "express": "4.16.0"
+  }
+}

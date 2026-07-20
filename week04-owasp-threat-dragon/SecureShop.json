@@ -1,0 +1,396 @@
+{
+  "version": "2.4.0",
+  "summary": {
+    "title": "SecureShop Threat Model",
+    "owner": "SSD Team",
+    "description": "Threat model for SecureShop, an online store web application. Customers register, log in, browse a catalogue, and check out. Stores credentials, PII, and order history; payment is delegated to an external gateway.",
+    "id": 0
+  },
+  "detail": {
+    "contributors": [],
+    "diagrams": [
+      {
+        "id": 0,
+        "title": "Main Request Data Flow",
+        "diagramType": "STRIDE",
+        "placeholder": "New STRIDE diagram description",
+        "thumbnail": "./public/content/images/thumbnail.stride.jpg",
+        "version": "2.4.0",
+        "cells": [
+          {
+            "position": { "x": 40, "y": 180 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": { "text": { "text": "Customer\n(Browser)" } },
+            "visible": true,
+            "shape": "actor",
+            "zIndex": 1,
+            "id": "actor-customer",
+            "data": {
+              "type": "tm.Actor",
+              "name": "Customer (Browser)",
+              "description": "End user of the store; unauthenticated as Guest, authenticated as Customer.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "t-spoof-customer",
+                  "title": "Spoofing the Customer",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Spoofing",
+                  "description": "An attacker impersonates a legitimate customer (credential stuffing, session hijacking) to gain access to their account.",
+                  "mitigation": "Strong password policy, account lockout/rate limiting, secure session cookies (HttpOnly, Secure, SameSite), optional MFA.",
+                  "modelType": "STRIDE"
+                }
+              ]
+            }
+          },
+          {
+            "position": { "x": 40, "y": 420 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": { "text": { "text": "Admin\n(Browser)" } },
+            "visible": true,
+            "shape": "actor",
+            "zIndex": 1,
+            "id": "actor-admin",
+            "data": {
+              "type": "tm.Actor",
+              "name": "Admin (Browser)",
+              "description": "Privileged operator who manages catalogue and orders.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "t-eop-admin",
+                  "title": "Elevation of privilege via admin endpoints",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Elevation of privilege",
+                  "description": "A customer reaches admin-only functionality because authorization is enforced only in the UI.",
+                  "mitigation": "Server-side role checks on every admin request; deny by default; least privilege; MFA for admins.",
+                  "modelType": "STRIDE"
+                }
+              ]
+            }
+          },
+          {
+            "position": { "x": 380, "y": 280 },
+            "size": { "width": 160, "height": 100 },
+            "attrs": { "text": { "text": "Web / App Server\n(SecureShop)" } },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 1,
+            "id": "proc-web",
+            "data": {
+              "type": "tm.Process",
+              "name": "Web / App Server (SecureShop)",
+              "description": "Handles requests, business logic, session management, and talks to the DB and payment gateway.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "t-xss-web",
+                  "title": "Cross-Site Scripting (XSS)",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Tampering",
+                  "description": "The server reflects/stores untrusted input without encoding, allowing script injection.",
+                  "mitigation": "Contextual output encoding, input validation, Content-Security-Policy, framework auto-escaping.",
+                  "modelType": "STRIDE"
+                },
+                {
+                  "id": "t-dos-web",
+                  "title": "Denial of Service on login/checkout",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Denial of service",
+                  "description": "Flooding expensive endpoints exhausts resources and takes the store offline.",
+                  "mitigation": "Rate limiting, reverse proxy/WAF, timeouts, autoscaling, caching.",
+                  "modelType": "STRIDE"
+                }
+              ]
+            }
+          },
+          {
+            "position": { "x": 720, "y": 180 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": { "text": { "text": "User & Order DB" } },
+            "visible": true,
+            "shape": "store",
+            "zIndex": 1,
+            "id": "store-db",
+            "data": {
+              "type": "tm.Store",
+              "name": "User & Order DB",
+              "description": "Relational store of credentials (hashed), PII, and order history.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "t-sqli-db",
+                  "title": "SQL Injection",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Tampering",
+                  "description": "Unparameterised queries let an attacker read or modify arbitrary data.",
+                  "mitigation": "Parameterised queries / prepared statements; least-privilege DB account; input validation.",
+                  "modelType": "STRIDE"
+                },
+                {
+                  "id": "t-info-db",
+                  "title": "Information disclosure of PII / credentials",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "A DB compromise or backup leak exposes personal data and password hashes.",
+                  "mitigation": "Encrypt at rest; salted+hashed passwords (bcrypt/argon2); restrict/monitor access; encrypt backups.",
+                  "modelType": "STRIDE"
+                }
+              ]
+            }
+          },
+          {
+            "position": { "x": 720, "y": 400 },
+            "size": { "width": 160, "height": 80 },
+            "attrs": { "text": { "text": "Session Store" } },
+            "visible": true,
+            "shape": "store",
+            "zIndex": 1,
+            "id": "store-session",
+            "data": {
+              "type": "tm.Store",
+              "name": "Session Store",
+              "description": "Holds server-side session state / tokens.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "position": { "x": 400, "y": 520 },
+            "size": { "width": 160, "height": 90 },
+            "attrs": { "text": { "text": "Payment Gateway\n(3rd party)" } },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 1,
+            "id": "proc-payment",
+            "data": {
+              "type": "tm.Process",
+              "name": "Payment Gateway (3rd party)",
+              "description": "External PCI-compliant payment processor. Card data is tokenised and never stored by SecureShop.",
+              "outOfScope": true,
+              "reasonOutOfScope": "Third-party service outside our trust boundary; card handling delegated to it.",
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "source": { "cell": "actor-customer" },
+            "target": { "cell": "proc-web" },
+            "vertices": [],
+            "shape": "flow",
+            "attrs": { "text": { "text": "HTTP requests (login, browse, checkout)" } },
+            "visible": true,
+            "zIndex": 2,
+            "labels": [{ "attrs": { "text": { "text": "HTTPS request" } } }],
+            "id": "flow-cust-web",
+            "data": {
+              "type": "tm.Flow",
+              "name": "HTTPS request",
+              "description": "Customer requests over TLS.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "isBidirectional": false,
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": [
+                {
+                  "id": "t-mitm-flow",
+                  "title": "Man-in-the-middle / eavesdropping",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Information disclosure",
+                  "description": "Traffic intercepted on the public network reveals credentials or session tokens.",
+                  "mitigation": "Enforce TLS 1.2+, HSTS, secure cookies; no sensitive data in URLs.",
+                  "modelType": "STRIDE"
+                }
+              ]
+            }
+          },
+          {
+            "source": { "cell": "proc-web" },
+            "target": { "cell": "actor-customer" },
+            "vertices": [],
+            "shape": "flow",
+            "attrs": { "text": { "text": "HTTP responses (pages, order status)" } },
+            "visible": true,
+            "zIndex": 2,
+            "labels": [{ "attrs": { "text": { "text": "HTTPS response" } } }],
+            "id": "flow-web-cust",
+            "data": {
+              "type": "tm.Flow",
+              "name": "HTTPS response",
+              "description": "Responses back to the customer.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": false,
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": []
+            }
+          },
+          {
+            "source": { "cell": "proc-web" },
+            "target": { "cell": "store-db" },
+            "vertices": [],
+            "shape": "flow",
+            "attrs": { "text": { "text": "SQL queries / results" } },
+            "visible": true,
+            "zIndex": 2,
+            "labels": [{ "attrs": { "text": { "text": "SQL" } } }],
+            "id": "flow-web-db",
+            "data": {
+              "type": "tm.Flow",
+              "name": "SQL",
+              "description": "Query/response to the database.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": true,
+              "protocol": "SQL",
+              "isEncrypted": true,
+              "isPublicNetwork": false,
+              "threats": []
+            }
+          },
+          {
+            "source": { "cell": "proc-web" },
+            "target": { "cell": "store-session" },
+            "vertices": [],
+            "shape": "flow",
+            "attrs": { "text": { "text": "session read/write" } },
+            "visible": true,
+            "zIndex": 2,
+            "labels": [{ "attrs": { "text": { "text": "session r/w" } } }],
+            "id": "flow-web-session",
+            "data": {
+              "type": "tm.Flow",
+              "name": "session r/w",
+              "description": "Server-side session state access.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": true,
+              "protocol": "TCP",
+              "isEncrypted": true,
+              "isPublicNetwork": false,
+              "threats": []
+            }
+          },
+          {
+            "source": { "cell": "proc-web" },
+            "target": { "cell": "proc-payment" },
+            "vertices": [],
+            "shape": "flow",
+            "attrs": { "text": { "text": "tokenised payment request" } },
+            "visible": true,
+            "zIndex": 2,
+            "labels": [{ "attrs": { "text": { "text": "tokenised payment" } } }],
+            "id": "flow-web-pay",
+            "data": {
+              "type": "tm.Flow",
+              "name": "tokenised payment",
+              "description": "Payment delegated to external gateway; card data tokenised.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": true,
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": []
+            }
+          },
+          {
+            "source": { "cell": "actor-admin" },
+            "target": { "cell": "proc-web" },
+            "vertices": [],
+            "shape": "flow",
+            "attrs": { "text": { "text": "admin actions" } },
+            "visible": true,
+            "zIndex": 2,
+            "labels": [{ "attrs": { "text": { "text": "admin actions" } } }],
+            "id": "flow-admin-web",
+            "data": {
+              "type": "tm.Flow",
+              "name": "admin actions",
+              "description": "Catalogue/order management requests.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false,
+              "isBidirectional": false,
+              "protocol": "HTTPS",
+              "isEncrypted": true,
+              "isPublicNetwork": true,
+              "threats": []
+            }
+          },
+          {
+            "position": { "x": 300, "y": 120 },
+            "size": { "width": 20, "height": 520 },
+            "attrs": {},
+            "visible": true,
+            "shape": "trust-boundary-curve",
+            "zIndex": 0,
+            "source": { "x": 310, "y": 120 },
+            "target": { "x": 310, "y": 640 },
+            "vertices": [],
+            "id": "tb-internet",
+            "data": {
+              "type": "tm.Boundary",
+              "name": "Internet trust boundary",
+              "description": "Separates untrusted browsers on the public Internet from the application server.",
+              "isTrustBoundary": true,
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "position": { "x": 640, "y": 120 },
+            "size": { "width": 20, "height": 400 },
+            "attrs": {},
+            "visible": true,
+            "shape": "trust-boundary-curve",
+            "zIndex": 0,
+            "source": { "x": 650, "y": 120 },
+            "target": { "x": 650, "y": 520 },
+            "vertices": [],
+            "id": "tb-datatier",
+            "data": {
+              "type": "tm.Boundary",
+              "name": "Data-tier trust boundary",
+              "description": "Separates the application server from the persistence tier (DB, session store).",
+              "isTrustBoundary": true,
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": false
+            }
+          }
+        ]
+      }
+    ],
+    "diagramTop": 1,
+    "reviewer": "SSD Team",
+    "threatTop": 8
+  }
+}
