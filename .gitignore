@@ -17,3 +17,7 @@ week05-web-proxy-github-actions/nginx-proxy/certbot/
 # OS
 .DS_Store
 Thumbs.db
+
+# Python
+__pycache__/
+*.pyc

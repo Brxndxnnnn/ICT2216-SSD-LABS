@@ -14,6 +14,13 @@ consistent:
 > credentials, personal data (name, address, email), payment information and
 > order history. Three roles: **Guest**, **Customer**, **Admin**.
 
+## 🎯 Sitting the practical test? → **[`test-prep/GUIDE.md`](test-prep/GUIDE.md)**
+
+The [`test-prep/`](test-prep) folder holds the exam battle plan plus two complete,
+ready-to-submit project skeletons for the Q4 web app (XSS/SQLi version and password
+version), each with docker-compose, nginx, CI workflow, Selenium tests and SonarQube
+config already wired up.
+
 ## Index
 
 | Week | Topic | Type | Folder |
@@ -27,22 +34,18 @@ consistent:
 | 7 | GitHub Actions + Automated Testing | Runnable | [week07-github-actions-testing](week07-github-actions-testing) |
 | 8 | Static Code Analysis (ESLint / CodeQL) | Runnable | [week08-static-code-analysis](week08-static-code-analysis) |
 | 9 | SonarQube | Runnable | [week09-sonarqube](week09-sonarqube) |
-| 11 | Vulnerability Assessment (ZAP) & Fuzzing (Burp) | Answer sheet | [week11-zap-burp-fuzzing](week11-zap-burp-fuzzing) |
 
-> There is no Week 10 in the provided lab set (labs jump from 9 to 11).
+> Week 10 does not exist in the lab set, and **Week 11 (ZAP / Burp) is not examinable**,
+> so it has been removed from this repo.
 
 ## Tooling that cannot be fully automated here
 
-Three labs use interactive GUI / Windows-only tools that cannot be scripted end-to-end
-in this repo. For these, the folder contains a **complete step-by-step answer sheet** with
-the exact clicks, expected outputs and the exam-relevant concepts:
+One lab uses an interactive Windows-only tool that cannot be scripted end-to-end in
+this repo, so its folder contains a **complete step-by-step answer sheet** instead:
 
 - **Week 3 — Microsoft Threat Modeling Tool**: Windows desktop app that saves a
   binary `.tm7` model. The folder provides the full DFD description + STRIDE
   analysis table you would produce with it.
-- **Week 11a — OWASP ZAP** and **Week 11b — Burp Suite**: interactive desktop
-  security tools driven against a locally hosted DVWA. The folder provides a full
-  click-by-click walkthrough and the expected findings.
 
 Everything else (Docker, workflows, Node app + tests, ESLint, SonarQube, Threat
 Dragon model) is provided as real, runnable files.

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+</head>
+<body>
+    <h1>Welcome</h1>
+    <!-- Jinja2 auto-escapes, so the value is rendered safely. -->
+    <p>Your password: <span id="password">{{ password }}</span></p>
+    <form action="{{ url_for('logout') }}">
+        <button type="submit" id="logout">Logout</button>
+    </form>
+</body>
+</html>

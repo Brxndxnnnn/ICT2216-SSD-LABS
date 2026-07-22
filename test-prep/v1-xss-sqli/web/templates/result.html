@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Result</title>
+</head>
+<body>
+    <h1>Search Term Submitted</h1>
+    <!-- Jinja2 auto-escapes, so the value is rendered safely. -->
+    <p id="term">{{ term }}</p>
+    <form action="/">
+        <button type="submit" id="back">Back to Home</button>
+    </form>
+</body>
+</html>

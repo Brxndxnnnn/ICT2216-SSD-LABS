@@ -1,0 +1,113 @@
+# Q5: integration testing + dependency check + UI testing over HTTP
+# Q7: SonarQube scanning
+name: SSD Practical CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # ---------- Q5a: integration / unit tests ----------
+  integration-test:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r web/requirements-dev.txt
+
+      - name: Run unit / integration tests
+        run: python -m pytest web/tests/test_validators.py -v
+
+  # ---------- Q5b: dependency check ----------
+  dependency-check:
+    name: Dependency check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: pip-audit (Python advisories)
+        run: |
+          pip install pip-audit
+          pip-audit -r web/requirements.txt
+
+      - name: OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'ssd-practical'
+          path: 'web'
+          format: 'HTML'
+          out: 'reports'
+          args: >
+            --enableExperimental
+            --failOnCVSS 7
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Upload dependency-check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports
+
+  # ---------- Q5c: UI testing over HTTP ----------
+  ui-test:
+    name: UI test over HTTP (Selenium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r web/requirements-dev.txt
+
+      - name: Start the app
+        working-directory: ./web
+        env:
+          FLASK_HOST: 127.0.0.1
+        run: |
+          nohup python app.py &
+          for i in $(seq 1 20); do
+            curl -sf http://127.0.0.1:5000/ && break || sleep 1
+          done
+
+      - name: Run Selenium UI tests
+        working-directory: ./web
+        env:
+          BASE_URL: http://127.0.0.1:5000
+        run: python tests/test_selenium.py
+
+  # ---------- Q7: SonarQube ----------
+  sonarqube:
+    name: SonarQube scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
