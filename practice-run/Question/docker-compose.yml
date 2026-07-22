@@ -1,0 +1,10 @@
+# Provided starting scaffold (simulates what Question.zip gives you).
+# Q4 allows you to replace or extend this with your own web application container.
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginxwebsvr
+    ports:
+      - "80:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
