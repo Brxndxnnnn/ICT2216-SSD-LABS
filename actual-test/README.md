@@ -35,7 +35,19 @@ git config user.email   # -> 2402054@sit.singaporetech.edu.sg
 5. When done, Claude tells you exactly what to zip (`2402054.zip`, built with Python — never
    PowerShell Compress-Archive) and you submit that.
 
+## How the commit is marked
+
+The marker only gets your `2402054.zip`. They verify the Q3/Q4 commit by running `git log`
+inside the unzip — so the submission zip **includes the `.git` folder**. The commit author is
+frozen into each commit (your SIT identity, via the auto-config above), so `git log` shows
+`CHU WEE HOW BRANDON <2402054@sit.singaporetech.edu.sg>` even on the marker's machine. Nothing
+touches your personal repo.
+
 ## What gets submitted
 
-`2402054.zip` containing the exam project folder — must run with a single `docker-compose up`.
-Claude builds and verifies it via the submission steps in `test-prep/RUNBOOK.md`.
+`2402054.zip` containing the exam project folder **with its `.git`** — must run with a single
+`docker-compose up`. Claude builds and verifies it via the submission steps in
+`test-prep/RUNBOOK.md` (checks the app runs AND `git log` shows the SIT identity).
+
+> Commits contain **no AI/Claude attribution** — no `Co-Authored-By` trailer, no "Generated
+> with Claude Code". History shows only you.

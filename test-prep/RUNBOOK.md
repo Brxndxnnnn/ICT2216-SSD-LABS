@@ -117,7 +117,10 @@ Target: `to_review: 0`, quality gate `OK`. Screenshot the clean dashboard.
 STAGE="/c/Users/brand/AppData/Local/Temp/2402054"
 rm -rf "$STAGE"; mkdir -p "$STAGE"; cp -r . "$STAGE/"
 find "$STAGE" -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null
-rm -rf "$STAGE/.pytest_cache" "$STAGE/reports" "$STAGE/.git"
+rm -rf "$STAGE/.pytest_cache" "$STAGE/reports"
+# KEEP .git — the marker verifies the Q3/Q4 commits by running `git log` in the unzip.
+# Sanity-check the commit identity BEFORE zipping:
+git -C "$STAGE" log --pretty="%h  %an <%ae>  %s" | head
 cd "$STAGE/.." && python - <<'PY'
 import os, zipfile
 with zipfile.ZipFile("2402054.zip","w",zipfile.ZIP_DEFLATED) as z:
@@ -130,7 +133,8 @@ PY
 unzip -l 2402054.zip | grep docker-compose   # sanity: forward slashes
 ```
 **Verify like the marker:** unzip to a *fresh* folder, `docker compose up` there, confirm
-`http://127.0.0.1/` works. (Bring your own stack down first to free the ports.)
+`http://127.0.0.1/` works, AND `git -C <fresh>/2402054 log` shows your commits authored by
+`CHU WEE HOW BRANDON <2402054@sit.singaporetech.edu.sg>`. (Bring your own stack down first.)
 
 ## Reset SonarQube password after a `down -v`
 ```bash
