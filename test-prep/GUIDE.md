@@ -230,9 +230,54 @@ curl http://127.0.0.1/
 ### Q3 — Git in the Docker Compose
 
 **Goal:** git configured inside the compose environment, with your identity.
-`git` is already installed by the kit's `Dockerfile`.
 
-**Step 1 — set identity inside the container**
+> ⚠️ **The scaffold you're handed has NO git.** `Question.zip` is just an
+> `nginx:alpine` service, and that image has no git installed — and no service called
+> `web`. So Q3 cannot be run against the bare scaffold. You must first have a container
+> that *contains* git. That container is the one you build for Q4. **In practice, this means
+> Q3 is done together with Q4, not before it.**
+
+**Step 0 — put git INTO the compose environment (this IS Q3).**
+On the exam you write this yourself; the kit already has it. Two pieces:
+
+`Dockerfile` — install git in your app's image:
+```dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*     # ← this line is what "sets up git in compose"
+# ... rest of your app build ...
+CMD ["python", "app.py"]               # ← REQUIRED: gives the container something to run
+```
+
+> ⚠️ **A container with no long-running process exits instantly** (`Exited (0)`), and
+> `docker compose exec` only works on a *running* container. A web server (your Q4 app)
+> stays up on its own. If you're doing Q3 *before* the app exists, put a temporary
+> `CMD ["sleep", "infinity"]` in so the container stays alive to `exec` into — then swap it
+> for your real app command in Q4.
+
+`docker-compose.yml` — define the service that builds it (this is where the name `web`
+comes from — it's *your* choice, not something the scaffold gives you):
+```yaml
+services:
+  web:
+    build: .          # builds the Dockerfile above → image has git
+    ports:
+      - "8000:5000"
+```
+
+Then bring it up so the service exists before you exec into it:
+```powershell
+docker compose up -d --build
+docker compose ps        # confirm a service named 'web' is Up
+```
+
+> 🔑 **Whatever you name the service in `docker-compose.yml` is what you type in
+> `docker compose exec <name> …`.** The kit uses `web`. If your compose only has `nginx`,
+> then `docker compose exec web …` fails with `service "web" is not running` — you're
+> naming a service that doesn't exist.
+
+**Step 1 — set identity inside the container** (replace `web` with your service name)
 ```powershell
 docker compose exec web git config --global user.name  "Your Full Name"
 docker compose exec web git config --global user.email "2401234@sit.singaporetech.edu.sg"
@@ -258,7 +303,8 @@ git commit -m "Q3: configure git identity"
 **If it fails:**
 | Error | Fix |
 |---|---|
-| `service "web" is not running` | `docker compose up -d` first |
+| `service "web" is not running` | Either you didn't `docker compose up -d`, **or** your compose has no service named `web` (the bare nginx scaffold doesn't) — do Step 0 first, or use your actual service name |
+| `git: not found` / `executable file not found` | Your image has no git — add the `apt-get install git` line to the Dockerfile (Step 0) and rebuild with `--build` |
 | `Author identity unknown` | You skipped Step 2 — run the two `git config` lines |
 | `not a git repository` | Run `git init` |
 
@@ -436,6 +482,7 @@ That step *is* Q6's requirement — don't skip it.
 **If it fails:**
 | Symptom | Fix |
 |---|---|
+| Password change rejected: `Password must be at least 12 characters long` | You're on SonarQube 25.x/26.x. The `sonarqube:community` tag floats to the newest version. **Pin `image: sonarqube:9.9-community`**, then `docker compose down -v` and up again. The student-ID password only works on 9.9. |
 | Container exits after ~30s | Memory. Docker Desktop → Settings → Resources → **≥ 4 GB**, then `docker compose down -v` and up again |
 | `max virtual memory areas vm.max_map_count too low` | Bootstrap check — compose already sets `SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true`; make sure you're using the kit's compose |
 | Port 9000 in use | Change host port to `"9001:9000"` and use `:9001` |
@@ -486,10 +533,15 @@ Open `http://127.0.0.1:9000/dashboard?id=ssd-practical`
 **If it fails:**
 | Error | Fix |
 |---|---|
+| `Not authorized. Analyzing this project requires authentication` (even with a fresh token) | SonarQube **9.9 wants the token in `-Dsonar.login=<token>`, NOT `-Dsonar.token`**. Switch the flag. |
+| `the working directory '.../usr/src' is invalid` or `You must define ... sonar.projectKey` on Git Bash | Git Bash mangled the paths. Prefix the whole command with `MSYS_NO_PATHCONV=1` and add `-Dsonar.projectBaseDir=/usr/src`. |
 | `You're not authorized` / 401 | Bad token — regenerate and retry |
-| `Connection refused` to :9000 | SonarQube not up, or drop `--network host` and use `-Dsonar.host.url=http://sonarqube:9000` with `--network <project>_appnet` |
-| `sonar.token is deprecated` warning | Harmless. Older versions want `-Dsonar.login=` instead |
+| `Connection refused` to :9000 | SonarQube not up, or use `--network <project>_appnet` with `-Dsonar.host.url=http://sonarqube:9000` (host networking is unreliable on Docker Desktop/Windows) |
 | `No files to analyze` | Wrong path — confirm `/usr/src/web` matches your folder layout |
+
+> **Submission zip — do NOT use PowerShell `Compress-Archive`.** It writes backslash paths that
+> extract as broken filenames on Linux/macOS markers, so `docker-compose up` finds nothing.
+> Build the zip with **Python `zipfile`** (forward slashes) — see `RUNBOOK.md` §Submission.
 
 **GitHub Actions route (optional):** add repo secrets `SONAR_TOKEN` and `SONAR_HOST_URL`
 (Settings → Secrets and variables → Actions). ⚠️ A **cloud runner cannot reach your

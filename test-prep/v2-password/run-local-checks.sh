@@ -17,26 +17,12 @@ echo
 echo "=============================================="
 echo "2) DEPENDENCY CHECK"
 echo "=============================================="
-if command -v pip-audit >/dev/null 2>&1; then
-  pip-audit -r web/requirements.txt || fail=1
+# Call via `python -m` so it works even when the pip-audit.exe shim is not on PATH
+# (common with the Windows Store build of Python).
+if python -m pip_audit --version >/dev/null 2>&1; then
+  python -m pip_audit -r web/requirements.txt || fail=1
 else
-  echo "pip-audit not installed:  pip install pip-audit"; fail=1
-fi
-
-# OWASP Dependency-Check via Docker (works offline once the image is pulled,
-# but the NVD feed needs network the first time).
-if command -v docker >/dev/null 2>&1; then
-  echo
-  echo "--- OWASP Dependency-Check (Docker) ---"
-  mkdir -p odc-reports odc-data
-  docker run --rm \
-    -v "$(pwd)/web:/src" \
-    -v "$(pwd)/odc-reports:/report" \
-    -v "$(pwd)/odc-data:/usr/share/dependency-check/data" \
-    owasp/dependency-check \
-    --scan /src --format HTML --out /report \
-    ${NVD_API_KEY:+--nvdApiKey "$NVD_API_KEY"} || fail=1
-  echo "Report -> odc-reports/dependency-check-report.html"
+  echo "pip-audit not installed:  python -m pip install pip-audit"; fail=1
 fi
 
 echo

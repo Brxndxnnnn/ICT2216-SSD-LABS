@@ -27,7 +27,9 @@ services:
       - appnet
 
   sonarqube:
-    image: sonarqube:community
+    # Pinned to 9.9 LTS: newer tags (25.x/26.x) enforce a 12-char minimum password,
+    # which makes "password = student ID" impossible per the paper.
+    image: sonarqube:9.9-community
     container_name: sonarqube
     ports:
       - "9000:9000"
