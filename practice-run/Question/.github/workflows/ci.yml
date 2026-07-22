@@ -95,3 +95,23 @@ jobs:
         env:
           BASE_URL: http://127.0.0.1:5000
         run: python tests/test_selenium.py
+
+  # ---------- Q7: SonarQube scan ----------
+  # Integrates the SonarQube analysis into the pipeline. Reads server URL and
+  # token from repo secrets (Settings -> Secrets and variables -> Actions):
+  #   SONAR_HOST_URL, SONAR_TOKEN
+  # NOTE: a GitHub-hosted runner cannot reach a SonarQube on your localhost.
+  # For the local exam server, run scan-sonar.sh (same analysis) — see that file.
+  sonarqube:
+    name: SonarQube scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
