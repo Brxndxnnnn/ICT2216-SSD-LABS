@@ -1,7 +1,8 @@
 """Q4 (Version 1): search page with input validation per OWASP C5.
 
-- "/"       home page: one search field + submit button
-- "/result" shown only when the search term passes validation
+- GET  "/"       home page: one search field + submit button
+- POST "/search" validates the term; shows the result page only if it passes
+  (safe GET and unsafe POST are kept on separate routes)
 """
 
 import os
@@ -13,17 +14,20 @@ from validators import validate_search
 app = Flask(__name__)
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def home():
-    if request.method == "POST":
-        term = request.form.get("search_term", "")
-        is_valid, message = validate_search(term)
-        if not is_valid:
-            # Requirements (c)/(d): clear the input and stay on the home page.
-            return render_template("index.html", error=message)
-        # Requirements (e)/(f): show the term on a new page.
-        return render_template("result.html", term=term)
     return render_template("index.html")
+
+
+@app.route("/search", methods=["POST"])
+def search():
+    term = request.form.get("search_term", "")
+    is_valid, message = validate_search(term)
+    if not is_valid:
+        # Requirements (c)/(d): clear the input and stay on the home page.
+        return render_template("index.html", error=message)
+    # Requirements (e)/(f): show the term on a new page.
+    return render_template("result.html", term=term)
 
 
 if __name__ == "__main__":

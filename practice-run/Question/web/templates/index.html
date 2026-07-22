@@ -10,7 +10,7 @@
         <p id="error" style="color:red;">{{ error }}</p>
     {% endif %}
     <!-- The field is rendered empty on every load, so a rejected input is cleared. -->
-    <form method="POST" action="/">
+    <form method="POST" action="/search">
         <label for="search_term">Search term</label>
         <input type="text" id="search_term" name="search_term" required>
         <button type="submit" id="submit">Submit</button>
