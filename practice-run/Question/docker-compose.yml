@@ -24,5 +24,28 @@ services:
     networks:
       - appnet
 
+  sonarqube:
+    # Pinned to the 9.9 LTS: newer tags (25.x/26.x) enforce a 12-char minimum
+    # password, which makes "password = student ID" impossible per the paper.
+    image: sonarqube:9.9-community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"     # SonarQube UI at http://127.0.0.1:9000/
+    environment:
+      # Skips the Elasticsearch bootstrap checks that otherwise crash the
+      # container on Docker Desktop (vm.max_map_count).
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - appnet
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+
 networks:
   appnet:
